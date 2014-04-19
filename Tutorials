@@ -26,14 +26,29 @@ The two guides I used as reference here:
 
 How to use git on your computer:
 	Now that you have the Repository on your computer, let's do stuff with it.
-	First, go into the repo (in your terminal)
-	If you make a change, you must: add then commit then push
 	
-	To add: Add any files you are altering
-	git add name_of_file name_of_other_file 
+	HOW TO ADD TO REPO
+		First, go into the repo (in your terminal)
+		If you make a change, you must: add then commit then push
 	
-	To Commit: note, you need a message
-	git commit -a -m "Your message here"
+		To add: Add any files you are altering
+		git add name_of_file name_of_other_file 
 	
-	To push: this pushes to master
-	git push origin master
+		To Commit: note, you need a message
+		git commit -a -m "Your message here"
+	
+		To push: this pushes to master
+		git push origin master
+		You can also just do:
+		git push
+	
+	HOW TO GET STUFF FROM REPO
+		First, go into the repo (in your terminal)
+		
+		To Pull:
+			git pull origin master
+		To see what's different:
+			git diff HEAD
+			Press q to escape
+		To see what is different with the stuff you are about to add/change to the repo:
+			git diff --staged
