@@ -28,6 +28,8 @@ How to use the git gui you just got:
 	Go to the repo you got and in the terminal run:
 		git gui
 		This should open up the gui
+	Check for changes:
+		Press the rescan button
 	Now after you change things in your repo, you must add/stage them:
 		click the stage changed in the bottom-half
 	Now you have to commit the changes:

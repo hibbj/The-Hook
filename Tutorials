@@ -37,6 +37,9 @@ How to use the git gui you just got:
 		Then click commit
 	Finally you can push it back:
 		Click the push button
+		
+	To pull using the GUI:
+		Go under Remote->fetch from->origin (or any branch you want to fetch from)
 
 How to use git on your computer:
 	Now that you have the Repository on your computer, let's do stuff with it.
