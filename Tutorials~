@@ -25,8 +25,16 @@ The two guides I used as reference here:
 	https://www.digitalocean.com/community/articles/how-to-install-git-on-ubuntu-12-04
 
 How to use the git gui you just got:
-	In terminal use:
+	Go to the repo you got and in the terminal run:
 		git gui
+		This should open up the gui
+	Now after you change things in your repo, you must add/stage them:
+		click the stage changed in the bottom-half
+	Now you have to commit the changes:
+		Write a message in the big white box at the bottom
+		Then click commit
+	Finally you can push it back:
+		Click the push button
 
 How to use git on your computer:
 	Now that you have the Repository on your computer, let's do stuff with it.
