@@ -7,7 +7,7 @@ YOUR ADMIRAL! ANDREW
 
 Sup - Mandeh
 
-Andrew the greater
+Andrew the great
 
 I'm here too - Cameron
 
