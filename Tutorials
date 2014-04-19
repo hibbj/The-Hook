@@ -24,7 +24,7 @@ The two guides I used as reference here:
 	http://www.ubuntumanual.org/posts/393/how-to-setup-and-use-github-in-ubuntu
 	https://www.digitalocean.com/community/articles/how-to-install-git-on-ubuntu-12-04
 
-How to use the git gui you just got:
+How to use the git gui you just got (warning: pull doesn't work yet):
 	Go to the repo you got and in the terminal run:
 		git gui
 		This should open up the gui
@@ -38,7 +38,7 @@ How to use the git gui you just got:
 	Finally you can push it back:
 		Click the push button
 		
-	To pull using the GUI:
+	To pull using the GUI (WARNING! DOESN'T WORK YET!):
 		Go under Remote->fetch from->origin (or any branch you want to fetch from)
 
 How to use git on your computer:
