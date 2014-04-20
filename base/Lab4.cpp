@@ -15,6 +15,8 @@ void HideMesh();
 //position and color data handles
 GLuint triBuffObj, colBuffObj;
 
+int ShadeMode = 0;
+
 //flag and ID to toggle on and off the shader
 int shade = 1;
 int ShadeProg;
@@ -37,7 +39,7 @@ static const float g_groundY = -.51;      // y coordinate of the ground
 static const float g_groundSize = 10000.0;   // half the ground length
 GLint h_uLightVec;
 GLint h_uLightColor;
-GLint h_uCamVec;
+GLint h_uCamPos, h_uShadeMode;
 GLint h_uMatAmb, h_uMatDif, h_uMatSpec, h_uMatShine;
 
 //declare Matrix stack
@@ -840,7 +842,8 @@ int InstallShader(const GLchar *vShaderName, const GLchar *fShaderName) {
         h_uMatDif = safe_glGetUniformLocation(ShadeProg, "uMat.dColor");
         h_uMatSpec = safe_glGetUniformLocation(ShadeProg, "uMat.sColor");
         h_uMatShine = safe_glGetUniformLocation(ShadeProg, "uMat.shine");
-        h_uCamVec = safe_glGetUniformLocation(ShadeProg, "uCamVec");
+        h_uCamPos = safe_glGetUniformLocation(ShadeProg, "uCamPos");
+        h_uShadeMode = safe_glGetUniformLocation(ShadeProg, "uShadeMode");
 
    printf("sucessfully installed shader %d\n", ShadeProg);
    return 1;
@@ -945,6 +948,8 @@ void SetupRamp(float x, float y, float z, int material, float angle, float scale
     DrawShadow(x, z + 0.3, scaleX - 0.5, scaleY, scaleZ, angle);
 }
 void SetupMesh(float x, float y, float z, int material, float angle, float scaleX, float scaleY, float scaleZ) {
+   ShadeMode = 1;
+   glUniform1f(h_uShadeMode, ShadeMode);
    SetModelMesh(x, y, z, angle, scaleX, scaleY, scaleZ);
    SetMaterial(material);
 
@@ -959,7 +964,11 @@ void SetupMesh(float x, float y, float z, int material, float angle, float scale
   /* draw! */
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, MeshIndxBuffObj);
   glDrawElements(GL_TRIANGLES, g_MiboLen, GL_UNSIGNED_SHORT, 0);
+  ShadeMode = 0;
+  glUniform1f(h_uShadeMode, ShadeMode);
+
   DrawShadow(x, z + 0.1, scaleX - 0.1, scaleY, scaleZ - 0.2, angle);
+
 }
 
 void DrawMesh(float x, float y, float z) {
@@ -1236,7 +1245,7 @@ void glfwDraw (GLFWwindow *window)
 
     glUniform3f(h_uLightColor, 0.4, 0.4, 0.38);
     glUniform4f(h_uLightVec, 0.0, -1.0, 1.0, 0.0);
-    glUniform3f(h_uCamVec, eye.x, eye.y, eye.z);
+    glUniform3f(h_uCamPos, eye.x, eye.y, eye.z);
 
     ModelTrans.loadIdentity();
     SetModel();

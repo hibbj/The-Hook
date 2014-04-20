@@ -31,6 +31,7 @@ uniform mat4 uProjMatrix;
 uniform mat4 uViewMatrix;
 uniform mat4 uModelMatrix1;
 
+uniform float uShadeMode;
 uniform Material uMat;
 attribute vec3 aPosition;
 uniform vec4 aLightVec;
@@ -43,7 +44,7 @@ varying vec3 camVec;
 
 varying vec3 normal;
 varying vec4 light;
-varying mat4 view;
+varying vec4 view;
 varying vec4 reflection;
 varying vec4 vPosition;
 
@@ -60,24 +61,31 @@ void main() {
 
    vPosition = uViewMatrix * vPosition;
    gl_Position = uProjMatrix * vPosition;
- 
-   light = tempLight;
+
+   camVec = vec3(uCamVec.x - vPosition.x, uCamVec.y - vPosition.y, uCamVec.z - vPosition.z);
+
+   L = normalize(tempLight);
+   L = vec4(-1.0 * L.x, -1.0 * L.y, L.z, 0.0);
+   
+   N = uModelMatrix1 * vec4(aNormal, 0);
+
    //Diffusion
-   L = vec4(-1.0 * tempLight.x, -1.0 * tempLight.y, tempLight.z, 0.0);
-   N = normalize(vec4(aNormal, 0));
-   N = uModelMatrix1 * N;
 
-   V = tempLight;
-
-   R = reflect(-1.0 * L, N);
+   if(uShadeMode == 0.0) {
+      N = -1.0 * normalize(N);
+   } 
+   else if(uShadeMode == 1.0) {
+      N = normalize(N);
+   }
+   R = reflect(L, N);
    R = normalize(R);
+   V = vec4(normalize(camVec), 0.0);
      
    //Pass aNormal to frag
    normal = aNormal;
-   view = uViewMatrix;
+   view = V;
    light = aLightVec;
    reflection = R;      
-   camVec = uCamVec;
 
    vColor == uMat.dColor + uMat.sColor + uMat.aColor;
 }
