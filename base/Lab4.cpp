@@ -9,6 +9,10 @@
  *
  *****************************************************************************/
 #include "Lab4.h"
+#include "InitHelpers.h"
+#include "Helper.h"
+#include "IO.h"
+#include "Shapes.h"
 
 void HideMesh();
 
@@ -22,21 +26,14 @@ int shade = 1;
 int ShadeProg;
 
 //Handles to the shader data
-GLint h_aPosition;
-GLint h_aNormal;
-GLint h_uViewMatrix;
-GLint h_uProjMatrix;
+GLint h_aPosition, h_aNormal, h_uViewMatrix, h_uProjMatrix;
 GLuint CubeBuffObj, CIndxBuffObj, GrndBuffObj, GIndxBuffObj, GNBuffObj, GNIndxBuffObj;
 GLuint ShadowCubeBuffObj, SCIndxBuffObj, ShadowNormalBuffObj, RampBuffObj, RIndxBuffObj, RampNormalBuffObj;
 int g_CiboLen, g_GiboLen, g_RiboLen, g_SCiboLen;
 
-static float g_width, g_height;
+float g_width, g_height;
 float g_Camtrans = -3.0;
 float g_Mtrans = 0;
-static float g_scale = 1;
-int g_mat_id =0;
-static const float g_groundY = -.51;      // y coordinate of the ground
-static const float g_groundSize = 10000.0;   // half the ground length
 GLint h_uLightVec;
 GLint h_uLightColor;
 GLint h_uCamPos, h_uShadeMode;
@@ -59,19 +56,19 @@ glm::vec3 g_trans(0.0, 0.8, 0.0);
 int g_track;
 float g_angle = 180;
 int g_MiboLen;
-CMesh *TheMesh;
+//CMesh *TheMesh;
 GLint h_uModelMatrix;
 GLuint NormalBuffObj;
 GLuint MeshBuffObj, MeshIndxBuffObj;
 
-float CMesh::WStoPS(float input) {
+/*float CMesh::WStoPS(float input) {
    if(input > 1) {
       return input;
    }
    return (input * 200) + 200;
-}
+}*/
 
-int loadASCIIMesh(std::string const & fileName, CMesh *Mesh) {
+/*int loadASCIIMesh(std::string const & fileName, CMesh *Mesh) {
         std::ifstream File;
         File.open(fileName.c_str());
 
@@ -163,17 +160,17 @@ else if ("Face" == Label)
         }
 
         return 1;
-}
+}*/
 
-
+/*
 CMesh::CMesh()
 {}
 
 CMesh::~CMesh()
-{}
+{}*/
 
 /* Just an example of how to iterate over the mesh triangles */
-void CMesh::PrintMesh() {
+/*void CMesh::PrintMesh() {
     for(unsigned int j = 0; j < Triangles.size(); j++)
     {
         SVertex Vertex;
@@ -185,10 +182,10 @@ void CMesh::PrintMesh() {
         Vertex = Vertices[Triangles[j].VertexIndex3];
         cout << "V3 " << Vertex.Position.X << " " << Vertex.Position.Y << " " << Vertex.Position.Z << endl;
     }
-}
+}*/
 
 /* center the mesh */
-void CMesh::centerMeshByExtents(SVector3 const & CenterLocation) {
+/*void CMesh::centerMeshByExtents(SVector3 const & CenterLocation) {
 
     if (Vertices.size() < 2)
         return;
@@ -215,13 +212,13 @@ void CMesh::centerMeshByExtents(SVector3 const & CenterLocation) {
                 Max.Z = it->Position.Z;
         }
     }
-SVector3 Center = (Max + Min) / 2;
+   SVector3 Center = (Max + Min) / 2;
 
     SVector3 VertexOffset = CenterLocation - Center;
     for (std::vector<SVertex>::iterator it = Vertices.begin(); it != Vertices.end(); ++ it)
         it->Position += VertexOffset;
 
-    /**My own code to get triangles**/
+    /**My own code to get triangles** /
     MeshPos = (float *)calloc(sizeof(float), Vertices.size() * 3);
     for(int p = 0; p < Vertices.size(); p++) {
        SVertex temp = Vertices[p];
@@ -242,9 +239,9 @@ SVector3 Center = (Max + Min) / 2;
     MeshPosSize = 3 * Vertices.size();
     idxSize = 3 * Triangles.size();
     VertexNormal = (float *)calloc(sizeof(float), Triangles.size() * 3);
-}
+}*/
 /* resize the mesh */
-void CMesh::resizeMesh(SVector3 const & Scale)
+/*void CMesh::resizeMesh(SVector3 const & Scale)
 {
     if (Vertices.size() < 2)
         return;
@@ -276,8 +273,8 @@ void CMesh::resizeMesh(SVector3 const & Scale)
     for (std::vector<SVertex>::iterator it = Vertices.begin(); it != Vertices.end(); ++ it)
         it->Position *= Resize;
 
-}
-glm::vec3 computeWeightedNormal(int vertex) {
+}*/
+/*glm::vec3 computeWeightedNormal(int vertex) {
    std::list<glm::vec3> neighbors;
    int vertexIndex1, vertexIndex2, vertexIndex3;
    glm::vec3 sumVector = glm::vec3(0.0f);
@@ -304,124 +301,20 @@ glm::vec3 computeWeightedNormal(int vertex) {
    }
 
    return sumVector/Magnitude(sumVector);
-}
-/* helper function to set up material for shading */
-void SetMaterial(int i) {
-  glUseProgram(ShadeProg);
-  switch (i) {
-    //Bright Lime Green
-    case 0:
-        safe_glUniform3f(h_uMatAmb, 0.23, 0.5, 0.3);
-        safe_glUniform3f(h_uMatDif, 0.04, 1.0, 0.1);
-        safe_glUniform3f(h_uMatSpec, 0.23, 0.5, 0.3);
-        safe_glUniform1f(h_uMatShine, 15.0);
-        break;
-    //Dark Green Shadow
-    case 1:
-        safe_glUniform3f(h_uMatAmb, 0.125, 0.29, 0.195);
-        safe_glUniform3f(h_uMatDif, 0.0, 0.0, 0.0);
-        safe_glUniform3f(h_uMatSpec, 0.0, 0.0, 0.0);
-        safe_glUniform1f(h_uMatShine, 192.0);
-        break;
-    //Ruby
-    case 2:
-        safe_glUniform3f(h_uMatAmb, 0.4, 0.2, 0.2);
-        safe_glUniform3f(h_uMatDif, 0.6, 0.4, 0.4);
-        safe_glUniform3f(h_uMatSpec, 0.4, 0.3, 0.3);
-        safe_glUniform1f(h_uMatShine, 1.0);
-        break;
-    //Sapphire
-    case 3:
-        safe_glUniform3f(h_uMatAmb, 0.1, 0.1, 0.2);
-        safe_glUniform3f(h_uMatDif, 0.3, 0.3, 0.4);
-        safe_glUniform3f(h_uMatSpec, 0.3, 0.3, 0.4);
-        safe_glUniform1f(h_uMatShine, 150.0);
-        break;
-    //Marble
-    case 4:
-        safe_glUniform3f(h_uMatAmb, 0.7, 0.7, 0.7);
-        safe_glUniform3f(h_uMatDif, 0.7, 0.7, 0.7);
-        safe_glUniform3f(h_uMatSpec, 0.4, 0.4, 0.4);
-        safe_glUniform1f(h_uMatShine, 100.0);
-        break;
-    //Blood Red
-    case 5:
-        safe_glUniform3f(h_uMatAmb, 0.4, 0.0, 0.0);
-        safe_glUniform3f(h_uMatDif, 0.7, 0.2, 0.2);
-        safe_glUniform3f(h_uMatSpec, 0.7, 0.15, 0.1);
-        safe_glUniform1f(h_uMatShine, 10.0);
-        break;
-    //Red Clay Steel
-    case 6:
-        safe_glUniform3f(h_uMatAmb, 0.4, 0.2, 0.2);
-        safe_glUniform3f(h_uMatDif, 0.8, 0.4, 0.4);
-        safe_glUniform3f(h_uMatSpec, 0.4, 0.3, 0.3);
-        safe_glUniform1f(h_uMatShine, 1.0);
-        break;
-    //Stainless Steel
-    case 7:
-        safe_glUniform3f(h_uMatAmb, 0.1, 0.1, 0.1);
-        safe_glUniform3f(h_uMatDif, 0.37, 0.37, 0.37);
-        safe_glUniform3f(h_uMatSpec, 0.37, 0.37, 0.37);
-        safe_glUniform1f(h_uMatShine, 100.0);
-        break;
-    //Dark Orange
-    case 8:
-        safe_glUniform3f(h_uMatAmb, 0.3, 0.15, 0.1);
-        safe_glUniform3f(h_uMatDif, 1.0, 0.5, 0.0);
-        safe_glUniform3f(h_uMatSpec, 1.0, 0.5, 0.0);
-        safe_glUniform1f(h_uMatShine, 75.0);
-        break;
-    //Graphite
-    case 9:
-        safe_glUniform3f(h_uMatAmb, 0.3, 0.3, 0.3);
-        safe_glUniform3f(h_uMatDif, 0.7, 0.7, 0.7);
-        safe_glUniform3f(h_uMatSpec, 0.9, 0.9, 0.9);
-        safe_glUniform1f(h_uMatShine, 100.0);
-        break;
-    //Ice
-    case 10:
-       safe_glUniform3f(h_uMatAmb, 0.6, 0.8, 0.9);
-       safe_glUniform3f(h_uMatDif, 0.2, 0.4, 0.5);
-       safe_glUniform3f(h_uMatSpec, 1.0, 1.0, 1.0);
-       safe_glUniform1f(h_uMatShine, 200.0);
-       break;
-    //Super Shiny Concrete                         
-    case 11:
-        safe_glUniform3f(h_uMatAmb, 0.3, 0.3, 0.3);
-        safe_glUniform3f(h_uMatDif, 0.5, 0.5, 0.5);
-        safe_glUniform3f(h_uMatSpec, 0.45, 0.45, 0.45);
-        safe_glUniform1f(h_uMatShine, 1.0);
-        break;
-    //Teal            
-    case 12:
-        safe_glUniform3f(h_uMatAmb, 0.453, 1.0, 1.0);
-        safe_glUniform3f(h_uMatDif, 0.453, 1.0, 1.0);
-        safe_glUniform3f(h_uMatSpec, 0.453, 1.0, 1.0);
-        safe_glUniform1f(h_uMatShine, 50.0);
-        break;
-    //Collision Box
-    case 13:
-        safe_glUniform3f(h_uMatAmb, 1.0, 0.0, 0.0);
-        safe_glUniform3f(h_uMatDif, 0.0, 0.0, 0.0);
-        safe_glUniform3f(h_uMatSpec, 0.0, 0.0, 0.0);
-        safe_glUniform1f(h_uMatShine, 0.0);
-        break;
+}*/
 
-    }
-}
-void SetModelMesh(float x, float y, float z, float angle, float sX, float sY, float sZ) {
+/*void SetModelMesh(float x, float y, float z, float angle, float sX, float sY, float sZ) {
   glm::mat4 Trans = glm::translate( glm::mat4(1.0f), glm::vec3(x, y, z));
   glm::mat4 Scale = glm::scale( glm::mat4(1.0f), glm::vec3(sX, sY, sZ));
   /*if(g_track) {
     glm::mat4 newRot = glm::rotate( glm::mat4(1.0f), g_angle, g_axis);
     allRot = newRot*allRot;
-  }*/
+  }* /
 
   glm::mat4 ctm = Trans * Scale;
   safe_glUniformMatrix4fv(h_uModelMatrix, glm::value_ptr(ctm));
-}
-static void initMesh() {
+}*/
+/*static void initMesh() {
 
   g_MiboLen = idxSize;
   glGenBuffers(1, &MeshBuffObj);
@@ -468,7 +361,7 @@ static void initMesh() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * idxSize, VertexNormal, GL_STATIC_DRAW);
 
     free(faceNormals);
-}
+}*/
 
 /* projection matrix  - do not change */
 void SetProjectionMatrix() {
@@ -483,14 +376,7 @@ float lookAty = 0.0f;
 float lookAtz = 0.0f;
 glm::vec3 lookAtPoint;
 glm::vec3 eye = glm::vec3(0.0, 0.0, 0.0);
-glm::vec3 up = glm::vec3(0.0f, -1.0f, 0.0f);
-
-float RandomFloat(float a, float b) {
-    float random = ((float) rand()) / (float) RAND_MAX;
-    float diff = b - a;
-    float r = random * diff;
-    return a + r;
-}
+glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 /* camera controls - do not change */
 void SetView() {
@@ -500,7 +386,7 @@ void SetView() {
   safe_glUniformMatrix4fv(h_uViewMatrix, glm::value_ptr(view));
 }
 
-void SetModel() {
+void SetModelStat() {
   safe_glUniformMatrix4fv(h_uModelMatrix, glm::value_ptr(ModelTrans.modelViewMatrix));
 }
 
@@ -508,379 +394,21 @@ void SetModel() {
 void SetModel(float x, float y, float z, float Sx, float Sy, float Sz, float angle) {
   glm::mat4 Trans = glm::translate( glm::mat4(1.0f), glm::vec3(x, y, z));
   glm::mat4 Scale = glm::scale(glm::mat4(1.0f), glm::vec3(Sx, Sy, Sz));
+   printf("%f %f wut\n",Sy,Sz);
   glm::mat4 Rotate = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
-  glm::mat4 ctm = Trans * Scale * Rotate;
+//  glm::mat4 ctm = Trans * Scale * Rotate;
+  glm::mat4 ctm = Trans * Rotate * Scale;
   safe_glUniformMatrix4fv(h_uModelMatrix, glm::value_ptr(ctm));
 }
 
-void SetModelCube(float x, float y, float z, float angle, float Sx, float Sy, float Sz) {
+/*void SetModelCube(float x, float y, float z, float angle, float Sx, float Sy, float Sz) {
   glm::mat4 Trans = glm::translate( glm::mat4(1.0f), glm::vec3(x, y, z));
   glm::mat4 Scale = glm::scale(glm::mat4(1.0f), glm::vec3(Sx, Sy, Sz));
   glm::mat4 Rotate = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
   glm::mat4 ctm = Trans * Scale * Rotate;
   safe_glUniformMatrix4fv(h_uModelMatrix, glm::value_ptr(ctm));
-}
+}*/
 
-static void initGround() {
-
-  // A x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
-    float GrndPos[] = {
-    -g_groundSize, g_groundY, -g_groundSize,
-    -g_groundSize, g_groundY,  g_groundSize,
-     g_groundSize, g_groundY,  g_groundSize,
-     g_groundSize, g_groundY, -g_groundSize
-    };
-
-    float GrndNorm[] = {
-     0, 1, 0,
-     0, 1, 0,
-     0, 1, 0,
-     0, 1, 0,
-     0, 1, 0,
-     0, 1, 0
-    };
-
-    unsigned short idx[] = {0, 1, 2, 0, 2, 3};
-
-    g_GiboLen = 6;
-    glGenBuffers(1, &GrndBuffObj);
-    glBindBuffer(GL_ARRAY_BUFFER, GrndBuffObj);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GrndPos), GrndPos, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &GIndxBuffObj);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GIndxBuffObj);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &GNBuffObj);
-    glBindBuffer(GL_ARRAY_BUFFER, GNBuffObj);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GrndNorm), GrndNorm, GL_STATIC_DRAW);
-
-}
-
-static void initCube() {
-
-  float CubePos[] = {
-    //Back face, 4 verts
-    -0.5, -0.5, -0.5, //Point0
-    -0.5, 0.5, -0.5,  //Point1
-    0.5, 0.5, -0.5,   //Point2
-    0.5, -0.5, -0.5,  //Point3
-
-    //Right face, 4 verts
-    0.5, 0.5, -0.5,   //P4
-    0.5, 0.5, 0.5,    //P5
-    0.5, -0.5, -0.5,  //P6
-    0.5, -0.5, 0.5,   //P7
-
-   //Left face 4 verts
-   -0.5, 0.5, -0.5,   //P8
-   -0.5, 0.5, 0.5,    //P9
-   -0.5, -0.5, -0.5,  //P10
-   -0.5, -0.5, 0.5,   //P11
-
-    //Bottom face 4 verts
-   -0.5, -0.5, -0.5,  //P12
-   -0.5, -0.5, 0.5,   //P13
-   0.5, -0.5, -0.5,   //P14
-   0.5, -0.5, 0.5,   //P15
-
-    //Top face 4 verts
-    0.5, 0.5, -0.5,  //P16
-    0.5, 0.5, 0.5,   //P17
-    -0.5, 0.5, -0.5, //P18
-    -0.5, 0.5, 0.5,  //P19
-
-    //Front face 4 verts
-    0.5, 0.5, 0.5,   //P20
-    0.5, -0.5, 0.5,  //P21
-    -0.5, 0.5, 0.5,  //P22
-    -0.5, -0.5, 0.5, //P23
-  };
-  float CubeNormal[] = {
-     0.0, 0.0, -1.0,
-     0.0, 0.0, -1.0,
-     0.0, 0.0, -1.0,
-     0.0, 0.0, -1.0,
-
-     1.0, 0.0, 0.0,
-     1.0, 0.0, 0.0,
-     1.0, 0.0, 0.0,
-     1.0, 0.0, 0.0,
-
-     -1.0, 0.0, 0.0,
-     -1.0, 0.0, 0.0,
-     -1.0, 0.0, 0.0,
-     -1.0, 0.0, 0.0,
-
-     0.0, -1.0, 0.0,
-     0.0, -1.0, 0.0,
-     0.0, -1.0, 0.0,
-     0.0, -1.0, 0.0,
-
-     0.0, 1.0, 0.0,
-     0.0, 1.0, 0.0,
-     0.0, 1.0, 0.0,
-     0.0, 1.0, 0.0,
-
-     0.0, 0.0, 1.0,
-     0.0, 0.0, 1.0,
-     0.0, 0.0, 1.0,
-     0.0, 0.0, 1.0,
-  };
-unsigned short idx[] = {0, 1, 2,
-                           0, 2, 3,
-
-                           4, 5, 6,
-                           5, 6, 7,
-
-                           8, 9, 10,
-                           9, 10, 11,
-
-                           12, 13, 14,
-                           13, 14, 15,
-
-                           16, 17, 18,
-                           17, 18, 19,
-
-                           20, 21, 22,
-                           21, 22, 23};
-    g_CiboLen = 36;
-    glGenBuffers(1, &CubeBuffObj);
-    glBindBuffer(GL_ARRAY_BUFFER, CubeBuffObj);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(CubePos), CubePos, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &CIndxBuffObj);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CIndxBuffObj);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &NormalBuffObj);
-    glBindBuffer(GL_ARRAY_BUFFER, NormalBuffObj);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(CubeNormal), CubeNormal, GL_STATIC_DRAW);
-}
-
-static void initRamp() {
-   float RampPos[] = {
-      //Slanted face, 4 verts
-      0.25, 0.0, 0.5, //0
-      -0.25, 0.0, 0.5, //1
-      0.25, 0.5, -0.25, //2
-      -0.25, 0.5, -0.25, //3
-
-      //Right Triangle, 3 verts
-      0.25, 0.0, 0.5, //4
-      0.25, 0.0, -0.25, //5
-      0.25, 0.5, -0.25, //6
-
-      //Left Triangle, 3 verts
-      -0.25, 0.0, 0.5, //7
-      -0.25, 0.0, -0.25, //8
-      -0.25, 0.5, -0.25, //9
-
-      //Back Face, 4 verts
-      0.25, 0, -0.25, //10 
-      -0.25, 0, -0.25, //11
-      0.25, 0.5, -0.25, //12
-      -0.25, 0.5, -0.25, //13
-
-      //Bottom, 4 verts
-      0.25, 0, 0.5, //14
-      -0.25, 0, 0.5,  //15
-      0.25, 0, -0.25, //16
-      -0.25, 0, -0.25, //17
-   };
-float RampNormal[] = {
-      0, 0.8, 1,
-      0, 0.8, 1,
-      0, 0.8, 1,
-      0, 0.8, 1,
-
-      1.0, 0.0, 0.0,
-      1.0, 0.0, 0.0,
-      1.0, 0.0, 0.0,
-
-      -1.0, 0.0, 0.0,
-      -1.0, 0.0, 0.0,
-      -1.0, 0.0, 0.0,
-
-      0.0, 0.0, -1.0,
-      0.0, 0.0, -1.0,
-      0.0, 0.0, -1.0,
-
-      0.0, -1.0, 0.0,
-      0.0, -1.0, 0.0,
-      0.0, -1.0, 0.0,
-   };
-   unsigned short idx[] = {0, 1, 3,
-                           0, 2, 3,
-
-                           4, 5, 6,
-
-                           7, 8, 9,
-
-                           10, 11, 12,
-                           11, 12, 13,
-
-                           14, 15, 16,
-                           15, 16, 17,
-                           };
-
-    g_RiboLen = 24;
-    glGenBuffers(1, &RampBuffObj);
-    glBindBuffer(GL_ARRAY_BUFFER, RampBuffObj);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(RampPos), RampPos, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &RIndxBuffObj);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, RIndxBuffObj);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &RampNormalBuffObj);
-    glBindBuffer(GL_ARRAY_BUFFER, RampNormalBuffObj);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(RampNormal), RampNormal, GL_STATIC_DRAW);
-
-}
-static void initCubeShadow() {
-   float ShadowPos[] = {
-      0.5, 0.0, 0.5, //P0
-      -0.5, 0.0, 0.5, //P1
-      -0.5, 0.0, -0.5, //P2
-      0.5, 0.0, -0.5, //P3
-   };
-
-    float ShadowNormal[] = {
-     0, 1, 0,
-     0, 1, 0,
-     0, 1, 0,
-     0, 1, 0,
-     0, 1, 0,
-     0, 1, 0
-    };
-
-   unsigned short idx[] = {0, 1, 2,
-                           0, 2, 3};
-
-    g_SCiboLen = 6;
-    glGenBuffers(1, &ShadowCubeBuffObj);
-    glBindBuffer(GL_ARRAY_BUFFER, ShadowCubeBuffObj);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ShadowPos), ShadowPos, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &SCIndxBuffObj);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SCIndxBuffObj);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &ShadowNormalBuffObj);
-    glBindBuffer(GL_ARRAY_BUFFER, ShadowNormalBuffObj);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ShadowNormal), ShadowNormal, GL_STATIC_DRAW);
-}
-
-
-/* Initialize the geometry */
-void InitGeom() {
-  initRamp();
-  initGround();
-  initCube();
-  initCubeShadow();
-  initMesh();
-}
-
-/*function to help load the shaders (both vertex and fragment */
-/* for this assignment we are doing anything interesting with the fragment sahder */
-int InstallShader(const GLchar *vShaderName, const GLchar *fShaderName) {
-   GLuint VS; //handles to shader object
-   GLuint FS; //handles to frag shader object
-   GLint vCompiled, fCompiled, linked; //status of shader
-
-   printf("IS1\n");
-
-   VS = glCreateShader(GL_VERTEX_SHADER);
-   FS = glCreateShader(GL_FRAGMENT_SHADER);
-
-   printf("IS3\n");
-   //load the source
-   glShaderSource(VS, 1, &vShaderName, NULL);
-   glShaderSource(FS, 1, &fShaderName, NULL);
-   
-   printf("IS2\n");
-
-   //compile shader and print log
-   glCompileShader(VS);
-   /* check shader status requires helper functions */
-   glGetShaderiv(VS, GL_COMPILE_STATUS, &vCompiled);
-
-   //compile shader and print log
-   glCompileShader(FS);
-   /* check shader status requires helper functions */
-   glGetShaderiv(FS, GL_COMPILE_STATUS, &fCompiled);
-
-   if (!vCompiled || !fCompiled) {
-       printf("Error compiling either shader %s or %s", vShaderName, fShaderName);
-      return 0;
-   }
-
-   //create a program object and attach the compiled shader
-   ShadeProg = glCreateProgram();
-   glAttachShader(ShadeProg, VS);
-   glAttachShader(ShadeProg, FS);
-
-   glLinkProgram(ShadeProg);
-   /* check shader status requires helper functions */
-   glGetProgramiv(ShadeProg, GL_LINK_STATUS, &linked);
-
-   glUseProgram(ShadeProg);
-   printf("IS10\n");
-
-   /* get handles to attribute and uniform data in shader */
-        /* get handles to attribute data */
-
-        h_aPosition = safe_glGetAttribLocation(ShadeProg, "aPosition");
-        h_aNormal = safe_glGetAttribLocation(ShadeProg, "aNormal");
-        h_uProjMatrix = safe_glGetUniformLocation(ShadeProg, "uProjMatrix");
-        h_uViewMatrix = safe_glGetUniformLocation(ShadeProg, "uViewMatrix");
-        h_uModelMatrix = safe_glGetUniformLocation(ShadeProg, "uModelMatrix1");
-        h_uLightVec = safe_glGetUniformLocation(ShadeProg, "aLightVec");
-        h_uLightColor = safe_glGetUniformLocation(ShadeProg, "uLColor");
-        h_uMatAmb = safe_glGetUniformLocation(ShadeProg, "uMat.aColor");
-        h_uMatDif = safe_glGetUniformLocation(ShadeProg, "uMat.dColor");
-        h_uMatSpec = safe_glGetUniformLocation(ShadeProg, "uMat.sColor");
-        h_uMatShine = safe_glGetUniformLocation(ShadeProg, "uMat.shine");
-        h_uCamPos = safe_glGetUniformLocation(ShadeProg, "uCamPos");
-        h_uShadeMode = safe_glGetUniformLocation(ShadeProg, "uShadeMode");
-
-   printf("sucessfully installed shader %d\n", ShadeProg);
-   return 1;
-}
-
-
-//Perform some initial GL setup.
-void glInitialize(void)
-{
-   // TODO GL_VERSION not being set?
-  // getGLversion();
-   srand(time(0));
-
-        // Start Of User Initialization
-        glClearColor (1.0f, 1.0f, 1.0f, 1.0f);                                                          
-        // Black Background
-        glClearDepth (1.0f);    // Depth Buffer Setup
-        glDepthFunc (GL_LEQUAL);        // The Type Of Depth Testing
-        glEnable (GL_DEPTH_TEST);// Enable Depth Testing
-
-        lookAtx = cos(alpha) * cos(beta);
-        lookAty = sin(alpha);
-        lookAtz = cos(alpha) * cos(M_PI/2.0 - beta);
-        lookAtPoint = glm::vec3(lookAtx, lookAty, lookAtz);
-
-         ModelTrans.useModelViewMatrix();
-         ModelTrans.loadIdentity();
-
-   // Install the shader.
-   if (!InstallShader(textFileRead((char *)"Lab4_vert.glsl"),
-                      textFileRead((char *)"Lab4_frag.glsl"))) {
-      std::cout << "Error installing shader!" << std::endl;
-      exit(EXIT_FAILURE);
-   }
-
-//   initTextures();
-}
 
 void DrawShadow(float x, float z, float Sx, float Sy, float Sz, float angle) {
     /*Shadow*/
@@ -905,7 +433,7 @@ void DrawShadow(float x, float z, float Sx, float Sy, float Sz, float angle) {
 
 void SetupCube(float x, float y, float z, int material, float angle, float scaleX, float scaleY, float scaleZ) {
    /*First Cube*/
-    SetModelCube(x, y, z, angle, scaleX, scaleY, scaleZ);
+    SetModel(x, y, z, scaleX, scaleY, scaleZ, angle);
     SetMaterial(material);
          safe_glEnableVertexAttribArray(h_aPosition);
     glBindBuffer(GL_ARRAY_BUFFER, CubeBuffObj);
@@ -925,8 +453,8 @@ void SetupCube(float x, float y, float z, int material, float angle, float scale
     safe_glDisableVertexAttribArray(h_aNormal);
     DrawShadow(x, z + 0.6, scaleX, scaleY, scaleZ + 0.4, angle);
 }
-void SetupRamp(float x, float y, float z, int material, float angle, float scaleX, float scaleY, float scaleZ) {
-   /*First Cube*/
+/*void SetupRamp(float x, float y, float z, int material, float angle, float scaleX, float scaleY, float scaleZ) {
+   /*First Cube* /
     SetModelCube(x, y, z, angle, scaleX, scaleY, scaleZ);
     SetMaterial(material);
          safe_glEnableVertexAttribArray(h_aPosition);
@@ -937,17 +465,17 @@ void SetupRamp(float x, float y, float z, int material, float angle, float scale
     glBindBuffer(GL_ARRAY_BUFFER, RampNormalBuffObj);
     safe_glVertexAttribPointer(h_aNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-    /* draw!*/
+    /* draw!* /
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, RIndxBuffObj);
 
     glDrawElements(GL_TRIANGLES, g_RiboLen, GL_UNSIGNED_SHORT, 0);
 
-    /* Disable the attributes used by our shader*/
+    /* Disable the attributes used by our shader* /
     safe_glDisableVertexAttribArray(h_aPosition);
     safe_glDisableVertexAttribArray(h_aNormal);
     DrawShadow(x, z + 0.3, scaleX - 0.5, scaleY, scaleZ, angle);
-}
-void SetupMesh(float x, float y, float z, int material, float angle, float scaleX, float scaleY, float scaleZ) {
+}*/
+/*void SetupMesh(float x, float y, float z, int material, float angle, float scaleX, float scaleY, float scaleZ) {
    ShadeMode = 1;
    glUniform1f(h_uShadeMode, ShadeMode);
    SetModelMesh(x, y, z, angle, scaleX, scaleY, scaleZ);
@@ -961,7 +489,7 @@ void SetupMesh(float x, float y, float z, int material, float angle, float scale
    glBindBuffer(GL_ARRAY_BUFFER, NormalBuffObj);
    safe_glVertexAttribPointer(h_aNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-  /* draw! */
+  /* draw! * /
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, MeshIndxBuffObj);
   glDrawElements(GL_TRIANGLES, g_MiboLen, GL_UNSIGNED_SHORT, 0);
   ShadeMode = 0;
@@ -969,9 +497,9 @@ void SetupMesh(float x, float y, float z, int material, float angle, float scale
 
   DrawShadow(x, z + 0.1, scaleX - 0.1, scaleY, scaleZ - 0.2, angle);
 
-}
+}*/
 
-void DrawMesh(float x, float y, float z) {
+/*void DrawMesh(float x, float y, float z) {
    ModelTrans.pushMatrix();
       SetupMesh(x, y - 0.2, z, 3, 0.0, 0.5, 0.5, 0.5);
       //SetupMesh(x, y - 0.3, z, 1, 0.0, 0.5, 0.5, 0.5);
@@ -1050,13 +578,13 @@ void DrawWallJump(float x, float y, float z) {
 
 
     ModelTrans.popMatrix();
-}
+}*/
 
 double spread;
 int numOfStructs;
 bool generated = false;
 int hideIndex;
-void GenerateStructures() {
+/*void GenerateStructures() {
     //printf("Num of position (according to linked list): %d\n", Table_Size());
 
     Node NodeTemp;
@@ -1070,7 +598,7 @@ void GenerateStructures() {
        NodeTemp = Get_Index(i);
        temp = NodeTemp.Position;
        printf("Pos#%d: %f %f %f\n", i, temp.x, temp.y, temp.z); 
-    }*/
+    }* /
 
    division = numOfStructs/3;
    structOnes = division;
@@ -1109,7 +637,7 @@ void GenerateStructures() {
       printf("\nWARNING! A Sapphire bunny is hidden somewhere! Can you find it?\n");
       generated = true;
    }
-}
+}*//*
 void HideMesh() {
 
    Node NodeTemp = Get_Index(hideIndex);
@@ -1127,7 +655,7 @@ void HideMesh() {
       DrawMesh(temp.x + 0.5, temp.y - 0.05, temp.z);
    }
 
-}
+}*//*
 float AdjustSpread(int structs, float spread) {
    int maxModels;
    float newSpread = spread;
@@ -1144,7 +672,7 @@ float AdjustSpread(int structs, float spread) {
       }
    }
    return newSpread;
-}
+}*//*
 void GeneratePositions() {
    //Two iterators, number of structures
    int i, j;
@@ -1231,7 +759,7 @@ void GeneratePositions() {
    CubeMaterials[1] = RandomInt(2, 11);
    CubeMaterials[2] = RandomInt(2, 11);
    CubeMaterials[3] = RandomInt(2, 11);
-}
+}*/
 
 /* Main display function */
 void glfwDraw (GLFWwindow *window)
@@ -1248,7 +776,7 @@ void glfwDraw (GLFWwindow *window)
     glUniform3f(h_uCamPos, eye.x, eye.y, eye.z);
 
     ModelTrans.loadIdentity();
-    SetModel();
+    SetModelStat();
 
        safe_glEnableVertexAttribArray(h_aPosition);
 
@@ -1266,7 +794,13 @@ void glfwDraw (GLFWwindow *window)
     glDrawElements(GL_TRIANGLES, g_GiboLen, GL_UNSIGNED_SHORT, 0);
     safe_glDisableVertexAttribArray(h_aPosition);
 
-    GenerateStructures();
+    //GenerateStructures();
+//float x, float y, float z, int material, float angle, float scaleX, float scaleY, float scaleZ
+   //x,y,z,mat,sz
+   SetupCube(3,0,6,2,45,1,1,2);
+   SetupCube(3,1,6,2,45,1,.5,1);
+   SetupCube(3,2,6,2,45,2,1,1);
+   SetupCube(3,3,6,2,60,1,1,1);
 
 	//Diisable the shader
 	glUseProgram(0);	
@@ -1274,147 +808,7 @@ void glfwDraw (GLFWwindow *window)
 
 }
 
-// GLFW callback for when the window is resized.
-void glfwWindowResize(GLFWwindow *window, int width, int height)
-{
-   g_width = (float)width;
-   g_height = (float)height;
-   glViewport(0, 0, (GLsizei)(width), (GLsizei)(height));
-}
 
-float p2i_x(int p_x) {
-  float x_i = ( (float)p_x - ((g_width-1.0)/2.0) )*2.0/g_width;
-  return(x_i);
-}
-
-float p2i_y(int p_y) {
-  return( ( (float)p_y - ((g_height-1.0)/2.0) )*2.0/g_height);
-}
-
-float p2w_x(int p_x) {
-  float x_i = ( (float)p_x - ((g_width-1.0)/2.0) )*2.0/g_width;
-  return(((float)g_width/(float)g_height)*x_i);
-}
-
-float p2w_y(int p_y) {
-   double bottom, top, scale, translate;
-   
-   top = g_height >= g_width ? g_height / g_width : 1;
-   bottom = -top;
-
-   scale = (-g_width + 1)/(bottom - top);
-   translate = scale * -bottom;
-   return (p_y - translate)/scale;
- 
-//  return( ( (float)p_y - ((g_height-1.0)/2.0) )*2.0/g_height);
-}
-
-float magnitude(glm::vec3 vector) {
-   return sqrt(pow(vector.x, 2.0) + pow(vector.y, 2.0) + pow(vector.z, 2.0));
-}
-
-float startX, startY;
-float endX, endY;
-
-glm::vec3 gaze;
-glm::vec3 w, u;
-
-void glfwGetCursorPos(GLFWwindow *window, double xpos, double ypos) {
-
-   if(xpos > g_width || xpos < 0 || ypos < 0 || ypos > g_height) {
-      return;
-   }
-
-   endX = xpos;
-   endY = g_height-ypos-1;
-
-   float startWX = p2w_x(startX);
-   float startWY = p2w_y(startY);
-   float endWX = p2w_x(endX);
-   float endWY = p2w_y(endY);
-   float diff;
-
-   //Calculate change in X
-   if(startX < endX) {
-      diff = endX - startX;
-      beta += (diff * M_PI)/g_width;
-   }
-   else if(startX > endX){
-      diff = startX - endX;
-      beta -= (diff * M_PI)/g_width;
-   }
-
-   //Calculate change in Y
-   if(startY < endY && alpha <= 0.98) {
-      diff = endY - startY;
-      alpha += (diff * M_PI)/g_width;
-   }
-   else if(startY > endY && alpha >= -0.98) {
-      diff = startY - endY;
-      alpha -= (diff * M_PI)/g_width;
-   }
-   //Update lookAt
-   //printf("alpha: %f, beta: %f\n", alpha, beta);
-   lookAtx = 1.0 * cos(alpha) * cos(beta);
-   lookAty = 1.0 * sin(alpha);
-   lookAtz = 1.0 * cos(alpha) * cos(M_PI/2.0 - beta);
-
-   lookAtx += eye.x;
-   lookAty += eye.y;
-   lookAtz += eye.z;
-
-   //printf("x: %f, y: %f, z: %f\n", lookAtx, lookAty, lookAtz);
-
-   lookAtPoint = glm::vec3(lookAtx, lookAty, lookAtz);
-
-  startX = endX;
-  startY = endY;
-
-
-}
-
-
-
-void glfw(GLFWwindow *window, int button, int action, int mods) {
-   
-}
-
-//the keyboard callback
-void glfwKeyPress(GLFWwindow *window, int key, int scan, int action, int mods) {
-  gaze = lookAtPoint - eye;
-
-  w = gaze/magnitude(gaze);
-  w = glm::vec3(-1.0 * w.x, -1.0 * w.y, -1.0 * w.z);
-  u = glm::cross(up, w)/magnitude(glm::cross(up, w));
-  switch( key ) {
-    case GLFW_KEY_S:
-       eye = glm::vec3(eye.x + 0.1 * w.x, eye.y + 0.1 * w.y, eye.z + 0.1 * w.z);
-       lookAtPoint = glm::vec3(0.1 * w.x + lookAtPoint.x, 0.1 * w.y + lookAtPoint.y, 0.1 * w.z + lookAtPoint.z);
-      break;
-    case GLFW_KEY_W:
-       eye = glm::vec3(eye.x - 0.1 * w.x, eye.y - 0.1 * w.y, eye.z - 0.1 * w.z);
-       lookAtPoint = glm::vec3(lookAtPoint.x - 0.1 * w.x, lookAtPoint.y - 0.1 * w.y, lookAtPoint.z - 0.1 * w.z);
-      break;
-    case GLFW_KEY_A:
-       eye = glm::vec3(eye.x + 0.1 * u.x, eye.y + 0.1 * u.y, eye.z + 0.1 * u.z);
-       lookAtPoint = glm::vec3(lookAtPoint.x + 0.1 * u.x, lookAtPoint.y + 0.1 * u.y, lookAtPoint.z + 0.1 * u.z);
-      break;
-    case GLFW_KEY_D:
-       eye = glm::vec3(eye.x - 0.1 * u.x, eye.y - 0.1 * u.y, eye.z - 0.1 * u.z);
-       lookAtPoint = glm::vec3(lookAtPoint.x - 0.1 * u.x, lookAtPoint.y - 0.1 * u.y, lookAtPoint.z - 0.1 * u.z);
-      break;
-    case GLFW_KEY_Q:
-      exit( EXIT_SUCCESS );
-      break;
-  }
-
-}
-
-// GLFW callback for any detected errors.
-void glfwError(int error, const char *description)
-{
-   std::cerr << description << std::endl;
-}
 
 int main( int argc, char *argv[] )
 {
@@ -1442,18 +836,19 @@ int main( int argc, char *argv[] )
    numOfStructs = atof(argv[2]);
 
    srand(time(0));
-   GeneratePositions();
+   //GeneratePositions();
 
    glfwMakeContextCurrent(window);
    glfwSetWindowPos(window, 80, 80);
-
    glfwSetWindowSizeCallback(window, glfwWindowResize);
+	glfwSetWindowSize(window,800,800);
+   g_height = g_width = 800;
    glfwSetKeyCallback(window, glfwKeyPress);
    glfwSetCursorPosCallback( window, glfwGetCursorPos );
 
    glewInit();
    glInitialize();
-   GeneratePositions();
+   //GeneratePositions();
 
    printf("sob2\n");
 
@@ -1465,10 +860,10 @@ int main( int argc, char *argv[] )
 
    printf("sob4\n");
 
-   TheMesh = new CMesh();
-   assert(loadASCIIMesh("bunny10k.m", TheMesh));
-   TheMesh->resizeMesh(SVector3(1));
-   TheMesh->centerMeshByExtents(SVector3(0));
+   //TheMesh = new CMesh();
+   //assert(loadASCIIMesh("bunny10k.m", TheMesh));
+   //TheMesh->resizeMesh(SVector3(1));
+   //TheMesh->centerMeshByExtents(SVector3(0));
    
    InitGeom();
 
@@ -1476,11 +871,11 @@ int main( int argc, char *argv[] )
    while (!glfwWindowShouldClose(window)) {
       glfwPollEvents();
       glfwDraw(window);
+      glfwSetCursorPos(window,g_width/2,g_height/2);
    }
 
    // Clean up after GLFW.
    glfwDestroyWindow(window);
    glfwTerminate();
-   Free_LinkedList();
    exit(EXIT_SUCCESS);
 }

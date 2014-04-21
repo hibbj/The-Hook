@@ -188,7 +188,6 @@ void Set_ModelType(int index, int type);
 Node Get_Index(int index);
 void Free_LinkedList();
 glm::vec3 computeWeightedNormal(int vertex);
-float Magnitude(glm::vec3 vector);
 int RandomInt(int one, int two);
 
 // Macro used to obtain relative offset of a field within a struct
