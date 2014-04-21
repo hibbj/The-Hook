@@ -32,6 +32,7 @@ int ShadeProg;
 btRigidBody* groundRigidBody;
 btRigidBody* fallRigidBody;
 btRigidBody* fallRigidBodyb;
+btDiscreteDynamicsWorld* dynamicsWorld;
 
 //Handles to the shader data
 GLint h_aPosition, h_aNormal, h_uViewMatrix, h_uProjMatrix;
@@ -206,7 +207,7 @@ void physicsInit() {
    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
    btGImpactCollisionAlgorithm::registerAlgorithm(dispatcher);
    btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-   btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfiguration);
+   /*btDiscreteDynamicsWorld* */dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfiguration);
    dynamicsWorld->setGravity(btVector3(0,-10,0));
 
    //shapes
