@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <vector>
 #include <time.h>
-
+#include <unistd.h>
 
 #define MODEL_TYPE_UNDEFINED -1
 #define MODEL_TYPE_STACKED_CUBES 0

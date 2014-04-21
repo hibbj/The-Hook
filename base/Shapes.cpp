@@ -15,7 +15,7 @@
 
 #include "Shapes.h"
 
-float g_groundSize = 10000.0, g_groundY = -.51;   // half the ground length, the y of the ground, 
+float g_groundSize = 10000.0, g_groundY = 0;   // half the ground length, the y of the ground, 
 
 void initGround() {
 

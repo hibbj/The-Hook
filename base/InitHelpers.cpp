@@ -88,7 +88,6 @@ int InstallShader(const GLchar *vShaderName, const GLchar *fShaderName) {
    return 1;
 }
 
-
 //Perform some initial GL setup.
 void glInitialize(void)
 {
@@ -117,6 +116,7 @@ void glInitialize(void)
       std::cout << "Error installing shader!" << std::endl;
       exit(EXIT_FAILURE);
    }
+   glCullFace(GL_BACK);
 
 //   initTextures();
 }
